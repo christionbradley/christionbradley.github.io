@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/customer/customer.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/customer/customer.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import { Product } from '../../components/Product';
+import { Modal } from '../../components/Modal';
+import { CartItem } from '../../components/CartItem';
+
+/**
+ * React component representing the Customer/Shop page.
+ *
+ * This component manages the display of products, the shopping cart, and provides temperature-based suggestions.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered React component.
+ */
+export const Shop = () => {
+  /**
+   * State hook to manage the list of products.
+   *
+   * @type {Array&lt;Object>}
+   * @property {string} id - The unique identifier of the product.
+   * @property {string} productName - The name of the product.
+   * @property {number} price - The price of the product.
+   * @property {string} productImage - The image URL of the product.
+   */
+  const [products, setProducts] = useState([]);
+
+  /**
+   * State hook to manage the current temperature.
+   *
+   * @type {number}
+   */
+  const [currTemp, setCurrTemp] = useState(0);
+
+  /**
+   * State hook to manage the current shopping cart.
+   *
+   * @type {Array&lt;string>}
+   */
+  const [currCart, setCurrCart] = useState([]);
+
+  /**
+   * Fetches the list of products and the current temperature from the backend.
+   *
+   * @function
+   * @name fetchData
+   * @async
+   */
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://project3-902-01-backend.onrender.com/currentMenu');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        } else {
+          console.error('Failed to fetch products');
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    const fetchWeather = async () => {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=30.628&amp;longitude=-96.3344&amp;current=temperature_2m&amp;temperature_unit=fahrenheit&amp;forecast_days=1';
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        setCurrTemp(data["current"]["temperature_2m"]);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+
+    fetchData();
+    fetchWeather();
+  }, []);
+
+  /**
+   * Updates the current shopping cart with a new product.
+   *
+   * @function
+   * @name updateCart
+   * @param {string} product - The product to add to the cart.
+   */
+  const updateCart = (product) => {
+    setCurrCart([...currCart, product]);
+  };
+
+  /**
+   * Reloads the current shopping cart to trigger a re-render.
+   *
+   * @function
+   * @name reloadCart
+   */
+  const reloadCart = () => {
+    setCurrCart([...currCart]);
+  };
+
+  /**
+   * Removes a product from the current shopping cart by its index.
+   *
+   * @function
+   * @name removeFromCart
+   * @param {number} idToRemove - The index of the product to remove.
+   */
+  const removeFromCart = (idToRemove) => {
+    const updatedCart = currCart.filter((_, index) => index !== idToRemove);
+    setCurrCart(updatedCart);
+  };
+
+  /**
+   * Resets the current shopping cart to an empty array.
+   *
+   * @function
+   * @name resetCart
+   */
+  const resetCart = () => {
+    setCurrCart([]);
+  };
+
+  /**
+   * Confirms the order by displaying "Order Confirmed!" in the current cart
+   * and resets the cart after a delay.
+   *
+   * @function
+   * @name confirmOrder
+   */
+  const confirmOrder = () => {
+    console.log(); // Not sure why this line is here
+    setCurrCart(["Order Confirmed!"]);
+    setTimeout(() => {
+      resetCart();
+    }, 1000);
+  };
+
+  /**
+   * Renders a product using the Product component.
+   *
+   * @function
+   * @name renderProduct
+   * @param {Object} product - The product to render.
+   * @returns {JSX.Element} The rendered Product component.
+   */
+  const renderProduct = (product) => {
+    return (
+      &lt;Product
+        id={product.id}
+        productName={product.item}
+        price={product.price}
+        productImage={product.imglink}
+        updateCart={updateCart}
+      />
+    );
+  };
+
+  /**
+   * Provides a suggested item name based on the current temperature.
+   *
+   * @function
+   * @name suggestItemName
+   * @returns {JSX.Element} The suggested item name.
+   */
+  const suggestItemName = () => {
+    if (currTemp > 85) {
+      return (
+        &lt;>Vanilla Icecream&lt;/>
+      );
+    } if (currTemp &lt; 56) {
+      return (
+        &lt;>Coffee&lt;/>
+      );
+    } else {
+      return (
+        &lt;>Iced Coffee&lt;/>
+      );
+    } 
+  };
+
+  /**
+   * Provides a suggested item product based on the current temperature.
+   *
+   * @function
+   * @name suggestItemProduct
+   * @returns {JSX.Element} The suggested item product.
+   */
+  const suggestItemProduct = () => {
+    if (currTemp > 85) {
+      return (
+        &lt;Product 
+          id={21}
+          productName={'Vanilla Icecream'}
+          price={"$2.35"}
+          productImage={'https://www.davidlebovitz.com/wp-content/uploads/2009/02/Vanilla-ice-cream-recipe-cherry-compote-3-768x1114.jpg'}
+          updateCart={updateCart} 
+        />
+      );
+    } if (currTemp &lt; 56) {
+      return (
+        &lt;Product 
+          id={22}
+          productName={'Coffee'}
+          price={"$2.95"}
+          productImage={"https://www.sabordemitierra.com/menu/wp-content/uploads/2021/01/TINTO.jpg"}
+          updateCart={updateCart} 
+        />);
+    } else {
+      return (
+        &lt;Product 
+          id={23}
+          productName={'Iced Coffee'}
+          price={"$4.85"}
+          productImage={'https://www.acouplecooks.com/wp-content/uploads/2022/01/Iced-Americano-004.jpg'}
+          updateCart={updateCart} 
+        />
+      );
+    } 
+  };
+
+  /**
+   * Renders the Shop component.
+   *
+   * @returns {JSX.Element} The rendered React component.
+   */
+  return (
+    &lt;div className='customer-root'>
+      &lt;div className='shop-container'>
+        &lt;div className='shop'>
+          &lt;div className='shopTitle'>
+            &lt;h1>Customer Menu&lt;/h1>
+            &lt;h3> Click "add to cart" to add items to the order. Click "submit order" when you are ready to check out. &lt;/h3>
+            &lt;div className='suggested-item'>
+              The current temperature is {currTemp + '\u00b0'} have a {suggestItemName()}
+            &lt;/div>
+          &lt;/div>
+          &lt;div className='products'>
+            {suggestItemProduct()}
+            {Object.values(products).map(renderProduct)}
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='cart'>
+          &lt;div className='cart-title'>
+            Current Cart
+          &lt;/div>
+          &lt;div className='current-cart'>
+            {currCart.map((item, index) => (
+              &lt;CartItem key={index} id={index + 1} currItem={item} currCart={currCart} removeFromCart={removeFromCart} reloadCart={reloadCart} />
+            ))}
+            &lt;div className='cart-buttons'>
+              &lt;button className='reset-cart-button' onClick={resetCart}>Reset Cart&lt;/button>
+              &lt;Modal confirmOrder={confirmOrder} currCart={currCart}/>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  );
+};
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-index.html">index</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddEmployeeModal">AddEmployeeModal</a></li><li><a href="global.html#Admin">Admin</a></li><li><a href="global.html#AdminModal">AdminModal</a></li><li><a href="global.html#CartItem">CartItem</a></li><li><a href="global.html#Cashier">Cashier</a></li><li><a href="global.html#CashierModal">CashierModal</a></li><li><a href="global.html#DateEntryModal">DateEntryModal</a></li><li><a href="global.html#DateRangeEntryModal">DateRangeEntryModal</a></li><li><a href="global.html#Employee">Employee</a></li><li><a href="global.html#ExcessReportMain">ExcessReportMain</a></li><li><a href="global.html#InvUpdateModal">InvUpdateModal</a></li><li><a href="global.html#InventoryProduct">InventoryProduct</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Manager">Manager</a></li><li><a href="global.html#ManagerModal">ManagerModal</a></li><li><a href="global.html#Menu">Menu</a></li><li><a href="global.html#MenuItemModal">MenuItemModal</a></li><li><a href="global.html#MenuProduct">MenuProduct</a></li><li><a href="global.html#Modal">Modal</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#OrderHistory">OrderHistory</a></li><li><a href="global.html#OrderHistoryMain">OrderHistoryMain</a></li><li><a href="global.html#PendingOrder">PendingOrder</a></li><li><a href="global.html#Product">Product</a></li><li><a href="global.html#ProductUsageMain">ProductUsageMain</a></li><li><a href="global.html#RestockReportMain">RestockReportMain</a></li><li><a href="global.html#SalesReportMain">SalesReportMain</a></li><li><a href="global.html#ShipmentItem">ShipmentItem</a></li><li><a href="global.html#ShipmentModal">ShipmentModal</a></li><li><a href="global.html#Shop">Shop</a></li><li><a href="global.html#WhatSellsMain">WhatSellsMain</a></li><li><a href="global.html#addItemHandler">addItemHandler</a></li><li><a href="global.html#addNewEmployee">addNewEmployee</a></li><li><a href="global.html#confirmOrder">confirmOrder</a></li><li><a href="global.html#fetchData">fetchData</a></li><li><a href="global.html#fetchEmployees">fetchEmployees</a></li><li><a href="global.html#fetchPending">fetchPending</a></li><li><a href="global.html#fetchProducts">fetchProducts</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#googleTranslateElementInit">googleTranslateElementInit</a></li><li><a href="global.html#handleAddItemClick">handleAddItemClick</a></li><li><a href="global.html#handleCallBackResponse">handleCallBackResponse</a></li><li><a href="global.html#handleSignOut">handleSignOut</a></li><li><a href="global.html#hideAdminModal">hideAdminModal</a></li><li><a href="global.html#hideCashierModal">hideCashierModal</a></li><li><a href="global.html#hideaddItem">hideaddItem</a></li><li><a href="global.html#initializeAuthButton">initializeAuthButton</a></li><li><a href="global.html#reloadCart">reloadCart</a></li><li><a href="global.html#removeFromCart">removeFromCart</a></li><li><a href="global.html#removeFromCartPrices">removeFromCartPrices</a></li><li><a href="global.html#render">render</a></li><li><a href="global.html#renderLeftSide">renderLeftSide</a></li><li><a href="global.html#renderProduct">renderProduct</a></li><li><a href="global.html#resetCart">resetCart</a></li><li><a href="global.html#showAdminModal">showAdminModal</a></li><li><a href="global.html#showCashierModal">showCashierModal</a></li><li><a href="global.html#suggestItemName">suggestItemName</a></li><li><a href="global.html#suggestItemProduct">suggestItemProduct</a></li><li><a href="global.html#updateCart">updateCart</a></li><li><a href="global.html#updateCartPrices">updateCartPrices</a></li><li><a href="global.html#updateCost">updateCost</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Dec 05 2023 15:42:14 GMT-0600 (Central Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/manager/manager.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/manager/manager.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect} from 'react';
+import { Product } from '../../components/managerMenuProduct';
+import { ShipmentModal } from '../../components/ShipmentModal';
+import "../../MotherCSS.css"
+import { MenuItemModal } from '../../components/MenuItemModal';
+import { InventoryProduct } from '../../components/InventoryProduct';
+import { DateEntryModal } from '../../components/DateEntryModal';
+import { DateRangeEntryModal } from '../../components/DateRangeEntryModal';
+import { InvUpdateModal } from '../../components/InvUpdateModal';
+import { OrderHistory } from '../../components/OrderHistory';
+
+/**
+ * Functional component representing the Manager dashboard.
+ *
+ * @returns {JSX.Element} JSX element for the Manager component.
+ */
+export const Manager = () => {
+
+  // declare state vars for displaying and data assignment
+  const [selectedButton, setSelectedButton] = useState('button1');
+  const [products, setProducts] = useState({});
+  const [inventory, setInventory] = useState({});
+  const [excessData, setExcessData] = useState({});
+  const [showExcess, excessClicked] = useState({});
+  const [excessColor, setExcessColor] = useState({});
+  const [salesData, setSalesData] = useState({});
+  const [showSales, salesClicked] = useState({});
+  const [salesColor, setSalesColor] = useState({});
+  const [whatSellsData, setWhatSellsData] = useState({});
+  const [showWhatSells, whatSellsClicked] = useState({});
+  const [showRestockReport, restockReportClicked] = useState({});
+  const [restockColor, setRestockColor] = useState({});
+  const [restockData, setRestockData] = useState({});
+  const [whatSellsColor, setWhatSellsColor] = useState({});
+  const [productData, setProductData] = useState([]);
+  const [showProduct, setProductClicked] = useState({});
+  const [productColor, setProductColor] = useState({});
+  const [addItemVisible, setaddItemVisible] = useState(false);
+  const [updateVisible, setupdateVisible] = useState(false);
+  const [OrderHistoryColor, setOrderHistoryColor] = useState({});
+  const [showOrderHistory, orderHistoryClicked] = useState({});
+  const [orderHistory, setOrderHistory] = useState({});
+
+  const [orderItemsVisible, setOrderItemsVisible] = useState(false);
+  
+
+  // dummy usestate to update inventory
+  const [inventoryUpdate, setInventoryUpdate] = useState(false);
+  //dummy usestate to updatel menu
+
+  // bring up pop up for adding menu item
+  const addItemHandler = () => {
+    setaddItemVisible(!addItemVisible);
+  };
+  const hideaddItem = () => {
+    setaddItemVisible(false);
+  }
+  const addFunction = () => {
+    //console.log("pressed add menu item button");
+    addItemHandler();
+  };
+  // bring up pop up for manual inventory update
+  const updateHandler = () => {
+    setupdateVisible(!updateVisible);
+  };
+  const hideUpdate = () => {
+    setupdateVisible(false);
+  }
+  const updateFunction = () => {
+    //console.log("pressed manual update button");
+    updateHandler();
+  };
+
+  // set up vars for excess report
+  const [isExcessDateOpen, setExcessDateOpen] = useState(false);
+
+  const showExcessDateModal = () => {
+    setExcessDateOpen(true);
+  }
+
+  const hideExcessDateModal = () => {
+    setExcessDateOpen(false);
+  }
+
+  const handleExcessDateSubmit = (date) => {
+    ExcessReportMain(date);
+  }
+
+  // set up vars for sales report
+  const [isSalesDateOpen, setSalesDateOpen] = useState(false);
+  
+  const showSalesDateModal = () => {
+    setSalesDateOpen(true);
+  }
+
+  const hideSalesDateModal = () => {
+    setSalesDateOpen(false);
+  }
+
+  const handleSalesDateSubmit = (date) => {
+    SalesReportMain(date)
+  }
+
+  const [isWhatSellsDateOpen, setWhatSellsDateOpen] = useState(false);
+
+  const showWhatSellsDateModal = () => {
+    setWhatSellsDateOpen(true);
+  }
+
+  const hideWhatSellsDateModal = () => {
+    setWhatSellsDateOpen(false);
+  }
+
+  const handleWhatSellsDateSubmit = (startDate, endDate) => {
+    WhatSellsMain(startDate, endDate);
+  }
+
+  const [isProductUsageDateOpen, setProductUsageDateOpen] = useState(false);
+
+  const showProductUsageDateModal = () => {
+    setProductUsageDateOpen(true);
+  }
+
+  const hideProductUsageDateModal = () => {
+    setProductUsageDateOpen(false);
+  }
+
+  const handleProductUsageDateSubmit = (startDate, endDate) => {
+    ProductUsageMain(startDate, endDate);
+  }
+
+  const handleRestockReportSubmit = () => {
+    RestockReportMain();
+  }
+
+  const [isOrderHistoryOpen, setOrderHistoryOpen] = useState(false);
+
+  const showOrderHistoryModal = () => {
+    setOrderHistoryOpen(true);
+  }
+
+  const hideOrderHistoryModal = () => {
+    setOrderHistoryOpen(false);
+  }
+
+  const handleOrderHistorySubmit = (date) => {
+    OrderHistoryMain(date);
+  }
+
+  // const orderHistoryLoad = () => {
+  //   OrderHistoryMain();
+  // }
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      // fetching current menu
+        try {
+            const response = await fetch('https://project3-902-01-backend.onrender.com/currentMenu');
+            //const response = await fetch('http://127.0.0.1:5000/currentMenu');
+            if (response.ok) {
+                const data = await response.json();
+                setProducts(data); // Set the fetched products to state
+            } else {
+                // Handle the error if the fetch fails
+                console.error('Failed to fetch products');
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+
+      
+        // fetching current inventory
+        try {
+          const response2 = await fetch("https://project3-902-01-backend.onrender.com/getInventory");
+          if (response2.ok) {
+            const data2 = await response2.json();
+            setInventory(data2);
+          }
+        } catch (error){
+          console.log("error fetching inventory: ", error);
+        }
+    };
+
+    fetchProducts();
+  }, [inventoryUpdate]);
+
+
+  const buttons = [
+    { id: 'button1', label: 'Inventory' },
+    { id: 'button2', label: 'Menu' },
+    { id: 'button3', label: 'Sales Data' },
+  ];
+
+  const handleButtonClick = (buttonId) => {
+    setSelectedButton(buttonId);
+  };
+  
+  // show content in box on right of screen
+  const renderGreyBoxContent = () => {
+    if (selectedButton === 'button1') {
+      return (
+      &lt;>
+        &lt;h1 className='Inventory-title'>Current Inventory&lt;/h1>
+        &lt;div className='manager-inventory'>
+          {Object.values(inventory).map((p) => (
+              &lt;InventoryProduct
+                  productName = {p.item}
+                  productMin = {p.minimum}
+                  productQuant = {p.quantity}
+                  inventoryUpdate = {inventoryUpdate}
+                  setInventoryUpdate = {setInventoryUpdate}
+              />
+          ))}
+        &lt;/div>
+      &lt;/>)
+    } else if (selectedButton === 'button2') {
+      // Render Product component with product data
+      //return products.length > 0 ? &lt;Product data={products} /> : &lt;div>Loading...&lt;/div>;
+      return (Object.values(products).map((p) => (
+        &lt;Product 
+            productName={p.item}
+            price={p.price}
+            productImage = {p.imglink}
+            productDescription = {p.description}
+            inventoryUpdate = {inventoryUpdate}
+            setInventoryUpdate = {setInventoryUpdate}
+            //updateCart={updateCart} 
+        />
+    )))
+    // Sales Data Screen
+    } else {
+      return (
+      &lt;>
+      
+      {/* Display data for excess report */}
+      {showExcess &amp;&amp; (
+        &lt;div>
+        &lt;div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', textAlign: 'center' }}>
+        {Object.keys(excessData).map((key, i) => (
+          &lt;div key={i} style={{ width: '30%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            &lt;span style={{ color: '#333' }}>{excessData[key]}&lt;/span>
+          &lt;/div>
+        ))}
+      &lt;/div>
+      &lt;/div>
+      )}
+
+      {/* Display data for sales report */}
+      {showSales &amp;&amp; (
+        &lt;div>
+          {/* &lt;h2 style={{ textAlign: 'center' }}>Sales Report&lt;/h2> */}
+        &lt;div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', textAlign: 'center' }}>
+        {Object.keys(salesData).map((key, i) => (
+          &lt;div key={i} style={{ width: '30%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            &lt;span style={{ fontWeight: 'bold', marginRight: '5px' }}>{key}:&lt;/span>
+            &lt;span style={{ color: '#333' }}>{salesData[key]}&lt;/span>
+          &lt;/div>
+        ))}
+      &lt;/div>
+      &lt;/div>
+      )}
+      {/* Display data for what selles report */}
+      {showWhatSells &amp;&amp; (
+        &lt;div>
+          {/* &lt;h2 style={{ textAlign: 'center' }}>What Sells Together&lt;/h2> */}
+        &lt;div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', textAlign: 'center' }}>
+        {Object.keys(whatSellsData).map((key, i) => (
+          &lt;div key={i} style={{ width: '30%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            &lt;span style={{ fontWeight: 'bold', marginRight: '5px' }}>{key}:&lt;/span>
+            &lt;span style={{ color: '#333' }}>{whatSellsData[key]}&lt;/span>
+          &lt;/div>
+        ))}
+      &lt;/div>
+      &lt;/div>
+      )}
+
+      {showRestockReport &amp;&amp; (
+        &lt;div>
+          {/* &lt;h2 style={{ textAlign: 'center' }}>Restock Report&lt;/h2> */}
+        &lt;div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', textAlign: 'center' }}>
+        {Object.keys(restockData).map((key, i) => (
+          &lt;div key={i} style={{ width: '30%', marginBottom: '10px', padding: '10px', border: '1px solid #ccc', borderRadius: '8px' }}>
+            &lt;span style={{ fontWeight: 'bold', marginRight: '5px' }}>{key}:&lt;/span>
+            &lt;span style={{ color: '#333' }}>{restockData[key]}&lt;/span>
+          &lt;/div>
+        ))}
+      &lt;/div>
+      &lt;/div>
+      )}
+      {/* Display order history */}
+      {showOrderHistory &amp;&amp; (
+              &lt;div>
+                &lt;ul>
+                {Object.values(orderHistory).length !== 0 ? Object.values(orderHistory).map((p) => (
+                  &lt;OrderHistory
+                      orderid = {p.orderid}
+                      date = {p.date}
+                      menuid = {p.menuid}
+                      comments = {p.comments}
+                      status = {p.status}
+                      orderHistoryMain = {OrderHistoryMain}
+                      inventoryUpdate={inventoryUpdate}
+                      setInventoryUpdate={setInventoryUpdate}
+                  />  
+                )): &lt;h1>No Data for this Date&lt;/h1>}
+                &lt;/ul>
+              &lt;/div>
+      )}
+      {shipmentVisible &amp;&amp; &lt;ShipmentModal visible={shipmentVisible} toggle={shipmentVisibleHandeler} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>}
+      {showProduct 
+        &amp;&amp; (
+          &lt;div>
+          &lt;table className="data-table">
+            &lt;tbody>
+              {productData.map((item, index) => (
+                &lt;tr key={index}>
+                &lt;td style={{ padding: '10px' }}>{item.id}&lt;/td>
+                &lt;td style={{ padding: '10px' }}>{item.menu_name}&lt;/td>
+                &lt;td style={{ padding: '10px' }}>{item.order_time}&lt;/td>
+              &lt;/tr>
+              ))}
+            &lt;/tbody>
+          &lt;/table>
+        &lt;/div>
+        )
+      }
+
+      &lt;/>
+      )
+    }
+  };
+  
+
+ /**
+ * Shows the Excess Report based on the given date.
+ *
+ * @function
+ * @name ExcessReportMain
+ * @async
+ *
+ * @param {string} date - The selected date for the excess report.
+ * @throws {Error} If there is an error fetching the Excess report.
+ * @returns {Promise&lt;void>} A promise that resolves when the excess report data is retrieved.
+ */
+  const ExcessReportMain = async (date) => {
+    try {      
+      //const response = await fetch('http://127.0.0.1:8000/ExcessReport');
+      //const response = await fetch(`https://project3-902-01-backend.onrender.com/ExcessReport`, {method: 'GET',});
+
+      // remove whatever is on screen currently
+      salesClicked(false);
+      whatSellsClicked(false);
+      setSalesColor('');
+      setWhatSellsColor('');
+      setExcessColor('red');
+      setRestockColor('');
+      setOrderHistoryColor('');
+      setProductColor('');
+      setProductClicked(false);
+      restockReportClicked(false);
+      orderHistoryClicked(false);
+      
+      
+      
+
+      // send current date and get back the excess report items
+      const response = await fetch('https://project3-902-01-backend.onrender.com/ExcessReport', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ selectedDate: date }),
+      });
+
+      // assign excess report data and display
+      const data = await response.json();
+      setExcessData(data);
+      excessClicked(true);
+    } catch (error){
+      console.log("error fetching Excess report: ", error);
+    }
+  };
+
+  // get sales report from backend
+  /**
+   * Fetches and displays the sales report based on the given date.
+   *
+   * @function
+   * @name SalesReportMain
+   * @async
+   *
+   * @param {string} date - The selected date for the sales report.
+   * @throws {Error} If there is an error fetching the Sales report.
+   * @returns {Promise&lt;void>} A promise that resolves when the sales report data is retrieved and displayed.
+   */
+  const SalesReportMain = async (date) => {
+    try {      
+      //const response = await fetch('http://127.0.0.1:8000/SalesReport');
+      //const response = await fetch(`https://project3-902-01-backend.onrender.com/SalesReport`, {method: 'GET',});
+
+      // remove whatever is on screen currently
+      excessClicked(false);
+      whatSellsClicked(false);
+      setExcessColor('');
+      setWhatSellsColor('');
+      setSalesColor('red');
+      setRestockColor('');
+      setOrderHistoryColor('');
+      setProductColor('');
+      setProductClicked(false);
+      restockReportClicked(false);
+      orderHistoryClicked(false);
+
+      // send current date and get back sales report items
+      const response = await fetch('https://project3-902-01-backend.onrender.com/SalesReport', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ selectedDate: date }),
+      });
+      
+      // assign sales report data and display
+      const data = await response.json();
+      setSalesData(data);
+      salesClicked(true);
+    } catch (error){
+      console.log("error fetching Sales report: ", error);
+    }
+  };
+
+  /**
+   * Fetches and displays a report on items that sell together within a given date range.
+   *
+   * @function
+   * @name WhatSellsMain
+   * @async
+   *
+   * @param {string} startDate - The start date for the report.
+   * @param {string} endDate - The end date for the report.
+   * @throws {Error} If there is an error fetching the What Sells Together report.
+   * @returns {Promise&lt;void>} A promise that resolves when the What Sells Together report data is retrieved and displayed.
+   */
+  const WhatSellsMain = async (startDate, endDate) => {
+    try {      
+      //const response = await fetch('http://127.0.0.1:8000/SalesReport');
+      //const response = await fetch(`https://project3-902-01-backend.onrender.com/SalesReport`, {method: 'GET',});
+
+      // remove whatever is on screen currently
+      excessClicked(false);
+      salesClicked(false);
+      setExcessColor('');
+      setSalesColor('');
+      setWhatSellsColor('red');
+      setRestockColor('');
+      setOrderHistoryColor('');
+      setProductColor('');
+      setProductClicked(false);
+      restockReportClicked(false);
+      orderHistoryClicked(false);
+
+      
+      // send current date and get back sales report items
+      const response = await fetch('https://project3-902-01-backend.onrender.com/whatSellsTogether', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ start: startDate}, {end: endDate}),
+      });
+      
+      // assign what sells together data and display
+      const data = await response.json();
+      setWhatSellsData(data);
+      whatSellsClicked(true);
+    } catch (error){
+      console.log("error fetching What Sells Together report: ", error);
+    }
+  }
+
+  /**
+   * Fetches and displays the restock report from the backend.
+   *
+   * @function
+   * @name RestockReportMain
+   * @async
+   *
+   * @throws {Error} If there is an error fetching the Restock report.
+   * @returns {Promise&lt;void>} A promise that resolves when the restock report data is retrieved and displayed.
+   */
+  const RestockReportMain = async () => {
+    try {      
+      //const response = await fetch('http://127.0.0.1:8000/SalesReport');
+      //const response = await fetch(`https://project3-902-01-backend.onrender.com/SalesReport`, {method: 'GET',});
+
+      // remove whatever is on screen currently
+      excessClicked(false);
+      salesClicked(false);
+      whatSellsClicked(false);
+      setExcessColor('');
+      setSalesColor('');
+      setWhatSellsColor('');
+      setRestockColor('red');
+      setOrderHistoryColor('');
+      setProductColor('');
+      setProductClicked(false);
+      orderHistoryClicked(false);
+
+      
+      // send current date and get back sales report items
+      const response = await fetch('https://project3-902-01-backend.onrender.com/restockReport', {
+        method: 'GET'
+      });
+      
+      // assign what sells together data and display
+      const data = await response.json();
+      setRestockData(data);
+      restockReportClicked(true);
+    } catch (error){
+      console.log("error fetching What Sells Together report: ", error);
+    }
+  }
+
+  // get excess report from backend
+  
+  /**
+   * Fetches and displays the product usage report from the backend based on the given date range.
+   *
+   * @function
+   * @name ProductUsageMain
+   * @async
+   *
+   * @param {string} startDate - The start date for the product usage report.
+   * @param {string} endDate - The end date for the product usage report.
+   * @throws {Error} If there is an error fetching the Product Usage report.
+   * @returns {Promise&lt;void>} A promise that resolves when the Product Usage report data is retrieved and displayed.
+   */
+  const ProductUsageMain = async (startDate, endDate) => {
+    try {      
+      //const response = await fetch('http://127.0.0.1:8000/ExcessReport');
+      //const response = await fetch(`https://project3-902-01-backend.onrender.com/ExcessReport`, {method: 'GET',});
+
+      // remove whatever is on screen currently
+      salesClicked(false);
+      whatSellsClicked(false);
+      setSalesColor('');
+      setWhatSellsColor('');
+      setExcessColor('');
+      setRestockColor('');
+      setProductColor('red');
+      restockReportClicked(false);
+      
+
+      // send current date and get back the excess report items
+      const response = await fetch('https://project3-902-01-backend.onrender.com/productUsage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ start: startDate}, {end: endDate}),
+      });
+
+      // assign excess report data and display
+      const data = await response.json();
+      setProductData(data);
+      setProductClicked(true);
+    } catch (error){
+      console.log("error fetching Product Usage: ", error);
+    }
+  };
+  
+  const [shipmentVisible, setShipmentVisible] = useState(false);
+  const shipmentVisibleHandeler = () =>{
+    setShipmentVisible(!shipmentVisible);
+  }
+
+  /**
+   * Fetches and displays the order history from the backend based on the given date.
+   *
+   * @function
+   * @name OrderHistoryMain
+   * @async
+   *
+   * @param {string} date - The selected date for the order history.
+   * @throws {Error} If there is an error fetching the order history.
+   * @returns {Promise&lt;void>} A promise that resolves when the order history data is retrieved and displayed.
+   */
+  const OrderHistoryMain = async (date) => {
+    // console.log('manager date:', date)
+    try {
+      excessClicked(false);
+      salesClicked(false);
+      whatSellsClicked(false);
+      restockReportClicked(false);
+      setExcessColor('');
+      setSalesColor('');
+      setWhatSellsColor('');
+      setProductColor('');
+      setProductClicked(false);
+      setRestockColor('');
+      setOrderHistoryColor('red');
+
+
+      //console.log(date);
+
+      const response = await fetch('https://project3-902-01-backend.onrender.com/getOrders/'+ date);
+      if (response.ok) {
+          const data = await response.json();
+          setOrderHistory(data);
+          orderHistoryClicked(true);
+      }
+      } catch (error) {
+      console.error('Error fetching orders:', error);
+      }
+  };
+
+  // show the buttons on the left side of screen
+  /**
+   * Renders the left side of the screen based on the selected button.
+   *
+   * @function
+   * @name renderLeftSide
+   * @returns {JSX.Element} The JSX element representing the left side of the screen.
+   */
+  const renderLeftSide = () => {
+    if (selectedButton === 'button1') {
+      return (
+        &lt;div className="left-side">
+          &lt;button className='managerFunctionButtons' onClick={shipmentVisibleHandeler}>Request Shipment&lt;/button>
+          &lt;button className='managerFunctionButtons' onClick={updateFunction}>Manual Update&lt;/button>
+          {updateVisible &amp;&amp; &lt;InvUpdateModal onClose={hideUpdate} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>}
+        &lt;/div>
+      );
+    } else if (selectedButton === 'button2') {
+      return (
+        &lt;div className="left-side">
+          &lt;button className='managerFunctionButtons' onClick={addFunction} >Add New Menu Item&lt;/button>
+          {addItemVisible &amp;&amp; &lt;MenuItemModal visible={addItemVisible} onClose={hideaddItem} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>}
+        &lt;/div>
+      );
+    } else { 
+      // buttons for sales data, appears on left side of screen
+      return (
+        &lt;div className="left-side" style={{ display: 'flex', gap: '10px' }}> 
+
+          {/* &lt;button className='managerFunctionButtons' onClick={addFunction} style = {{display: 'inline-block'}} >Add New Seasonal Item&lt;/button>
+          {addItemVisible &amp;&amp; &lt;MenuItemModal visible={addItemVisible} onClose={hideaddItem} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>} */}
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block',backgroundColor: excessColor }} onClick={showExcessDateModal} >Generate Excess Report&lt;/button>
+          &lt;DateEntryModal isOpen={isExcessDateOpen} onClose={hideExcessDateModal} onSubmit={handleExcessDateSubmit}/>
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block',backgroundColor: salesColor }} onClick={showSalesDateModal}>Generate Sales Report&lt;/button>
+          &lt;DateEntryModal isOpen={isSalesDateOpen} onClose={hideSalesDateModal} onSubmit={handleSalesDateSubmit}/>
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block',backgroundColor: whatSellsColor }} onClick={showWhatSellsDateModal}>What Sells Together&lt;/button>
+          &lt;DateRangeEntryModal isOpen={isWhatSellsDateOpen} onClose={hideWhatSellsDateModal} onSubmit={handleWhatSellsDateSubmit}/>
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block',backgroundColor: restockColor }} onClick={handleRestockReportSubmit}>Restock Report&lt;/button>
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block',backgroundColor: productColor }} onClick={showProductUsageDateModal}>Product Usage&lt;/button>
+          &lt;DateRangeEntryModal isOpen={isProductUsageDateOpen} onClose={hideProductUsageDateModal} onSubmit={handleProductUsageDateSubmit}/>
+
+          &lt;button className='managerFunctionButtons' onClick={addFunction} >New Seasonal Menu Item&lt;/button>
+          {addItemVisible &amp;&amp; &lt;MenuItemModal visible={addItemVisible} onClose={hideaddItem} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>}
+
+          &lt;button className='managerFunctionButtons' style = {{display: 'inline-block', backgroundColor: OrderHistoryColor }} onClick={showOrderHistoryModal}>Order History&lt;/button>
+          &lt;DateEntryModal isOpen={isOrderHistoryOpen} onClose={hideOrderHistoryModal} onSubmit={handleOrderHistorySubmit}/>          
+        &lt;/div>
+        );
+    }
+  };
+
+  return (
+    &lt;div className="manager-root">
+      {shipmentVisible &amp;&amp; &lt;ShipmentModal visible={shipmentVisible} toggle={shipmentVisibleHandeler} inventoryUpdate={inventoryUpdate} setInventoryUpdate={setInventoryUpdate}/>}
+      &lt;div class="container-fluid">
+        &lt;div className= "manager-nav">
+          {buttons.map((button) => (
+                &lt;button
+                  key={button.id}
+                  className='managerNavButtons'//{selectedButton === button.id ? 'selected' : ''}
+                  onClick={() => handleButtonClick(button.id)}
+                >
+                  {button.label}
+                &lt;/button>
+            ))} {/*choo choo!*/}
+        &lt;/div>
+        &lt;div className="manager-content">
+          {addItemVisible &amp;&amp; &lt;MenuItemModal/>}
+            &lt;div className= "manager-buttons-box">
+                &lt;div className= "manager-buttons">
+                {renderLeftSide()}
+                &lt;/div>
+            &lt;/div>
+            &lt;div className="manager-input">
+            {renderGreyBoxContent()}
+            &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    &lt;/div>
+  );
+};
+
+export default Manager;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-index.html">index</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddEmployeeModal">AddEmployeeModal</a></li><li><a href="global.html#Admin">Admin</a></li><li><a href="global.html#AdminModal">AdminModal</a></li><li><a href="global.html#CartItem">CartItem</a></li><li><a href="global.html#Cashier">Cashier</a></li><li><a href="global.html#CashierModal">CashierModal</a></li><li><a href="global.html#DateEntryModal">DateEntryModal</a></li><li><a href="global.html#DateRangeEntryModal">DateRangeEntryModal</a></li><li><a href="global.html#Employee">Employee</a></li><li><a href="global.html#ExcessReportMain">ExcessReportMain</a></li><li><a href="global.html#InvUpdateModal">InvUpdateModal</a></li><li><a href="global.html#InventoryProduct">InventoryProduct</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Manager">Manager</a></li><li><a href="global.html#ManagerModal">ManagerModal</a></li><li><a href="global.html#Menu">Menu</a></li><li><a href="global.html#MenuItemModal">MenuItemModal</a></li><li><a href="global.html#MenuProduct">MenuProduct</a></li><li><a href="global.html#Modal">Modal</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#OrderHistory">OrderHistory</a></li><li><a href="global.html#OrderHistoryMain">OrderHistoryMain</a></li><li><a href="global.html#PendingOrder">PendingOrder</a></li><li><a href="global.html#Product">Product</a></li><li><a href="global.html#ProductUsageMain">ProductUsageMain</a></li><li><a href="global.html#RestockReportMain">RestockReportMain</a></li><li><a href="global.html#SalesReportMain">SalesReportMain</a></li><li><a href="global.html#ShipmentItem">ShipmentItem</a></li><li><a href="global.html#ShipmentModal">ShipmentModal</a></li><li><a href="global.html#Shop">Shop</a></li><li><a href="global.html#WhatSellsMain">WhatSellsMain</a></li><li><a href="global.html#addItemHandler">addItemHandler</a></li><li><a href="global.html#addNewEmployee">addNewEmployee</a></li><li><a href="global.html#confirmOrder">confirmOrder</a></li><li><a href="global.html#fetchData">fetchData</a></li><li><a href="global.html#fetchEmployees">fetchEmployees</a></li><li><a href="global.html#fetchPending">fetchPending</a></li><li><a href="global.html#fetchProducts">fetchProducts</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#googleTranslateElementInit">googleTranslateElementInit</a></li><li><a href="global.html#handleAddItemClick">handleAddItemClick</a></li><li><a href="global.html#handleCallBackResponse">handleCallBackResponse</a></li><li><a href="global.html#handleSignOut">handleSignOut</a></li><li><a href="global.html#hideAdminModal">hideAdminModal</a></li><li><a href="global.html#hideCashierModal">hideCashierModal</a></li><li><a href="global.html#hideaddItem">hideaddItem</a></li><li><a href="global.html#initializeAuthButton">initializeAuthButton</a></li><li><a href="global.html#reloadCart">reloadCart</a></li><li><a href="global.html#removeFromCart">removeFromCart</a></li><li><a href="global.html#removeFromCartPrices">removeFromCartPrices</a></li><li><a href="global.html#render">render</a></li><li><a href="global.html#renderLeftSide">renderLeftSide</a></li><li><a href="global.html#renderProduct">renderProduct</a></li><li><a href="global.html#resetCart">resetCart</a></li><li><a href="global.html#showAdminModal">showAdminModal</a></li><li><a href="global.html#showCashierModal">showCashierModal</a></li><li><a href="global.html#suggestItemName">suggestItemName</a></li><li><a href="global.html#suggestItemProduct">suggestItemProduct</a></li><li><a href="global.html#updateCart">updateCart</a></li><li><a href="global.html#updateCartPrices">updateCartPrices</a></li><li><a href="global.html#updateCost">updateCost</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Dec 05 2023 15:42:14 GMT-0600 (Central Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/ShipmentModal.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/ShipmentModal.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useEffect, useState } from 'react';
+import { ShipmentItem } from './ShipmentItem';
+
+/**
+ * ShipmentItem component for displaying a shipment item with an input field.
+ * @component
+ * @param {Object} props - The component props.
+ * @param {string} props.item - The name of the shipment item.
+ * @param {string} props.value - The value of the shipment item.
+ * @param {Function} props.onInputChange - Function to handle input changes.
+ * @returns {JSX.Element} The ShipmentItem component.
+ */
+export const ShipmentModal = ({ visible, toggle, inventoryUpdate, setInventoryUpdate }) => {
+  const [inventory, setInventory] = useState({});
+  const [inputValues, setInputValues] = useState([]);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const response = await fetch('https://project3-902-01-backend.onrender.com/getInventory');
+        if (response.ok) {
+          const data = await response.json();
+          setInventory(data);
+        }
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+      }
+    };
+
+    // Call fetchInventory when the component mounts or when 'visible' changes
+    if (visible) {
+      fetchInventory();
+    }
+  }, [visible]);
+
+  const handleInputChange = (item, value) => {
+    setInputValues((prevInputValues) => ({
+      ...prevInputValues,
+      [item]: value,
+    }));
+  };
+
+  const handleConfirm = () => {
+    toggle();
+    const resultString = Object.entries(inputValues)
+    .map(([item, quantity]) => `${item.replace(/:/g, '-')}-${quantity}`)
+    .join('+').replace(/ /g, 'SPACE');
+
+    // console.log(resultString)
+    // now make the fetch
+    const makeShipment = async() => {
+      try {
+        const response = await fetch('https://project3-902-01-backend.onrender.com/shipment/' + resultString);
+        if(response.ok){
+          console.log("shipment success")
+          setInventoryUpdate(!inventoryUpdate)
+        }
+      } catch(error){
+        console.log("Error during shipment:", error);
+      }
+    }
+    makeShipment();
+
+  };
+
+  return (
+    &lt;div>
+      {visible &amp;&amp; (
+        &lt;div className="shipment-modal-overlay">
+          &lt;div className="shipment-modal">
+            &lt;h2>Shipment Modal&lt;/h2>
+            &lt;button className='shipment-modal-close' onClick={toggle}>
+              Close
+            &lt;/button>
+            &lt;div className='shipment-popup'>
+              {Object.values(inventory).map((p) => (
+                &lt;ShipmentItem
+                  key={p.item}
+                  item={p.item}
+                  value={p.quantity}
+                  onInputChange={handleInputChange}
+                />
+              ))}
+            &lt;/div>
+            &lt;button onClick={handleConfirm}>Confirm&lt;/button>
+          &lt;/div>
+        &lt;/div>
+      )}
+    &lt;/div>
+  );
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-index.html">index</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AddEmployeeModal">AddEmployeeModal</a></li><li><a href="global.html#Admin">Admin</a></li><li><a href="global.html#AdminModal">AdminModal</a></li><li><a href="global.html#CartItem">CartItem</a></li><li><a href="global.html#Cashier">Cashier</a></li><li><a href="global.html#CashierModal">CashierModal</a></li><li><a href="global.html#DateEntryModal">DateEntryModal</a></li><li><a href="global.html#DateRangeEntryModal">DateRangeEntryModal</a></li><li><a href="global.html#Employee">Employee</a></li><li><a href="global.html#ExcessReportMain">ExcessReportMain</a></li><li><a href="global.html#InvUpdateModal">InvUpdateModal</a></li><li><a href="global.html#InventoryProduct">InventoryProduct</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Manager">Manager</a></li><li><a href="global.html#ManagerModal">ManagerModal</a></li><li><a href="global.html#Menu">Menu</a></li><li><a href="global.html#MenuItemModal">MenuItemModal</a></li><li><a href="global.html#MenuProduct">MenuProduct</a></li><li><a href="global.html#Modal">Modal</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#OrderHistory">OrderHistory</a></li><li><a href="global.html#OrderHistoryMain">OrderHistoryMain</a></li><li><a href="global.html#PendingOrder">PendingOrder</a></li><li><a href="global.html#Product">Product</a></li><li><a href="global.html#ProductUsageMain">ProductUsageMain</a></li><li><a href="global.html#RestockReportMain">RestockReportMain</a></li><li><a href="global.html#SalesReportMain">SalesReportMain</a></li><li><a href="global.html#ShipmentItem">ShipmentItem</a></li><li><a href="global.html#ShipmentModal">ShipmentModal</a></li><li><a href="global.html#Shop">Shop</a></li><li><a href="global.html#WhatSellsMain">WhatSellsMain</a></li><li><a href="global.html#addItemHandler">addItemHandler</a></li><li><a href="global.html#addNewEmployee">addNewEmployee</a></li><li><a href="global.html#confirmOrder">confirmOrder</a></li><li><a href="global.html#fetchData">fetchData</a></li><li><a href="global.html#fetchEmployees">fetchEmployees</a></li><li><a href="global.html#fetchPending">fetchPending</a></li><li><a href="global.html#fetchProducts">fetchProducts</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#googleTranslateElementInit">googleTranslateElementInit</a></li><li><a href="global.html#handleAddItemClick">handleAddItemClick</a></li><li><a href="global.html#handleCallBackResponse">handleCallBackResponse</a></li><li><a href="global.html#handleSignOut">handleSignOut</a></li><li><a href="global.html#hideAdminModal">hideAdminModal</a></li><li><a href="global.html#hideCashierModal">hideCashierModal</a></li><li><a href="global.html#hideaddItem">hideaddItem</a></li><li><a href="global.html#initializeAuthButton">initializeAuthButton</a></li><li><a href="global.html#reloadCart">reloadCart</a></li><li><a href="global.html#removeFromCart">removeFromCart</a></li><li><a href="global.html#removeFromCartPrices">removeFromCartPrices</a></li><li><a href="global.html#render">render</a></li><li><a href="global.html#renderLeftSide">renderLeftSide</a></li><li><a href="global.html#renderProduct">renderProduct</a></li><li><a href="global.html#resetCart">resetCart</a></li><li><a href="global.html#showAdminModal">showAdminModal</a></li><li><a href="global.html#showCashierModal">showCashierModal</a></li><li><a href="global.html#suggestItemName">suggestItemName</a></li><li><a href="global.html#suggestItemProduct">suggestItemProduct</a></li><li><a href="global.html#updateCart">updateCart</a></li><li><a href="global.html#updateCartPrices">updateCartPrices</a></li><li><a href="global.html#updateCost">updateCost</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Tue Dec 05 2023 15:42:14 GMT-0600 (Central Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
